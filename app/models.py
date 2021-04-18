@@ -20,6 +20,31 @@ class Ride(db.Model):
     gross_amount = db.Column(db.Float)
 
 
+def get_rides_by_deployment_cycle_query_set(deployment_cycle):
+    # instead of this QuerySet we can make deployment cycle id part of rides table
+    # deployment cycle id can be filled during data import
+
+    if deployment_cycle.time_pickup:
+        query_set = (
+            Ride.query.filter_by(vehicle_id=deployment_cycle.vehicle_id)
+            .filter(
+                Ride.time_ride_start.between(
+                    deployment_cycle.time_deployment, deployment_cycle.time_pickup
+                )
+            )
+            .filter(
+                Ride.time_ride_end.between(
+                    deployment_cycle.time_deployment, deployment_cycle.time_pickup
+                )
+            )
+        )
+    else:
+        query_set = Ride.query.filter_by(vehicle_id=deployment_cycle.vehicle_id).filter(
+            Ride.time_ride_start >= deployment_cycle.time_deployment
+        )
+    return query_set
+
+
 class RideSchema(ModelSchema):
     revenue = fields.String(attribute="gross_amount")
     ride_distance = fields.String(attribute="distance")
@@ -87,3 +112,12 @@ class DeploymentCycleSchema(ModelSchema):
         model = DeploymentCycle
         sqla_session = db.session
         fields = ("deployment_task_id", "vehicle_id", "time_deployment")
+
+
+def get_n_latest_deployment_cycles_by_qr_code(qr_code, n):
+    return (
+        DeploymentCycle.query.filter_by(qr_code=qr_code)
+            .order_by(DeploymentCycle.time_deployment.desc())
+            .limit(n)
+            .all()
+    )
