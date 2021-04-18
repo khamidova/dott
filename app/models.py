@@ -1,4 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
+from marshmallow import fields
+from marshmallow_sqlalchemy import ModelSchema
 
 db = SQLAlchemy()
 
@@ -16,6 +18,37 @@ class Ride(db.Model):
     end_lng = db.Column(db.Float)
     distance = db.Column(db.Float)
     gross_amount = db.Column(db.Float)
+
+
+class RideSchema(ModelSchema):
+    revenue = fields.String(attribute="gross_amount")
+    ride_distance = fields.String(attribute="distance")
+    start_point = fields.Method('get_start_point')
+    end_point = fields.Method('get_end_point')
+
+    def get_point(self, lat, lng):
+        return {
+            "latitude": lat,
+            "longitude": lng
+        }
+
+    def get_start_point(self, obj):
+        return self.get_point(obj.start_lat, obj.start_lng)
+
+    def get_end_point(self, obj):
+        return self.get_point(obj.end_lat, obj.end_lng)
+
+    class Meta(ModelSchema.Meta):
+        model = Ride
+        sqla_session = db.session
+        fields = (
+            "revenue",
+            "ride_distance",
+            "time_ride_start",
+            "time_ride_end",
+            "start_point",
+            "end_point",
+        )
 
 
 class Deployment(db.Model):
@@ -47,3 +80,10 @@ class DeploymentCycle(db.Model):
     qr_code = db.Column(db.String)
     time_deployment = db.Column(db.DateTime(timezone=True))
     time_pickup = db.Column(db.DateTime(timezone=True))
+
+
+class DeploymentCycleSchema(ModelSchema):
+    class Meta(ModelSchema.Meta):
+        model = DeploymentCycle
+        sqla_session = db.session
+        fields = ("deployment_task_id", "vehicle_id", "time_deployment")
