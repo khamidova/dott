@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, abort, make_response
-from models import (
+from .models import (
     DeploymentCycleSchema,
     Ride,
     RideSchema,
@@ -9,6 +9,12 @@ from models import (
 
 
 views = Blueprint("views", __name__)
+
+
+@views.route('/')
+def hello():
+    """Return a friendly HTTP greeting."""
+    return 'OK'
 
 
 @views.route("/vehicles/<qr_code>/", methods=["GET"])
