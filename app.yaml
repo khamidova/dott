@@ -1,0 +1,8 @@
+runtime: python37
+entrypoint: gunicorn -b :$PORT -w 2 dott.app:app
+
+env_variables:
+  CLOUD_SQL_CONNECTION_NAME: dott-311317:europe-west1:dott-database
+  DB_USER: ***
+  DB_PASS: ***
+  DB_NAME: dott
