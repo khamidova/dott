@@ -1,0 +1,7 @@
+structlog
+flask
+flask-migrate
+flask-sqlalchemy
+marshmallow-sqlalchemy
+gunicorn
+psycopg2
