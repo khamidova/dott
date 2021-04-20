@@ -1,2 +1,5 @@
 env/
 .idea/
+
+# Python pycache:
+__pycache__/
