@@ -1,14 +1,14 @@
 from flask import Flask
 from flask_migrate import Migrate
-from models import db
-from views import views
-import config
-from cli import import_cli, generate_cli
+from .models import db
+from .views import views
+from .config import SQLALCHEMY_DATABASE_URI
+from .cli import import_cli, generate_cli
 
 app = Flask(__name__)
 
 # setup database
-app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI
+app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 migrate = Migrate(app, db, compare_type=True)

@@ -1,7 +1,7 @@
 import structlog
 import os
-from db import engine, generate_query
-import config
+from .db import engine, generate_query
+from . import config
 from flask.cli import AppGroup
 
 
@@ -94,20 +94,30 @@ def generate_deployment_cycles_db():
     )
     cursor.execute(
         """
-        with deployments_pickups as (
+        with vehicles as (
+          select distinct
+            vehicle_id,
+            qr_code
+          from pickups
+        ),
+        
+        deployments_pickups as (
         select
           deployments.task_id as deployment_task_id,
           pickups.task_id as pickup_task_id,
-          pickups.vehicle_id as vehicle_id,
-          pickups.qr_code as qr_code,
+          deployments.vehicle_id as vehicle_id,
+          vehicles.qr_code as qr_code,
           deployments.time_task_resolved as time_deployment,
           pickups.time_task_created as time_pickup,
           rank() over (partition by deployments.vehicle_id, deployments.task_id order by pickups.time_task_created) as rank
         from
+          
+          deployments 
+          left join vehicles
+            on deployments.vehicle_id=vehicles.vehicle_id
           -- left join to keep 'open' deployments
-          deployments left join pickups
-          on
-            deployments.vehicle_id=pickups.vehicle_id
+          left join pickups
+            on deployments.vehicle_id=pickups.vehicle_id
             and deployments.time_task_resolved<pickups.time_task_created
         )
 
