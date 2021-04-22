@@ -15,7 +15,7 @@ else:
 
 #SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost:1234/dott"
 
-IMPORT_CSV_FILES_LOCATION = "/home/okhamidova/Desktop/dott/"
-RIDES_FOLDER = "rides"
-DEPLOYMENTS_FOLDER = "deployments"
-PICKUPS_FOLDER = "pickups"
+STORAGE_BUCKET = os.environ.get("STORAGE_BUCKET", "dott-data")
+RIDES_FOLDER_PREFIX = os.environ.get("RIDES_FOLDER_PREFIX", "rides")
+DEPLOYMENTS_FOLDER_PREFIX = os.environ.get("DEPLOYMENTS_FOLDER_PREFIX", "deployments")
+PICKUPS_FOLDER_PREFIX = os.environ.get("PICKUPS_FOLDER_PREFIX", "pickups")

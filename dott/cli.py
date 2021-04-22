@@ -1,6 +1,8 @@
 import structlog
+from tempfile import NamedTemporaryFile
 import os
 from .db import engine, generate_query
+from .storage import list_blobs
 from . import config
 from flask.cli import AppGroup
 
@@ -13,17 +15,17 @@ generate_cli = AppGroup("generate", help="Generate data from existing data")
 
 @import_cli.command("rides", help="Import rides from CSV files")
 def import_rides():
-    import_data("rides", config.RIDES_FOLDER)
+    import_data("rides", config.RIDES_FOLDER_PREFIX)
 
 
 @import_cli.command("deployments", help="Import deployments from CSV files")
 def import_deployments():
-    import_data("deployments", config.DEPLOYMENTS_FOLDER)
+    import_data("deployments", config.DEPLOYMENTS_FOLDER_PREFIX)
 
 
 @import_cli.command("pickups", help="Import pickups from CSV files")
 def import_pickups():
-    import_data("pickups", config.PICKUPS_FOLDER)
+    import_data("pickups", config.PICKUPS_FOLDER_PREFIX)
 
 
 @generate_cli.command(
@@ -47,11 +49,15 @@ def find_csv_filenames(path_to_dir, suffix=".csv"):
 def import_data(table, folder_prefix):
     logger.info(f"Importing {table}: Starting...")
 
-    csv_folder = os.path.join(config.IMPORT_CSV_FILES_LOCATION, folder_prefix)
-    csv_files = find_csv_filenames(csv_folder)
-    for csv_file in csv_files:
-        logger.info(f"Importing {table}: Reading from csv file {csv_file}")
-        import_data_from_csv(table, csv_file)
+    blobs = list_blobs(config.STORAGE_BUCKET, folder_prefix)
+
+    for blob in blobs:
+        with NamedTemporaryFile() as tmp_file:
+            tmp_filename = tmp_file.name
+            logger.info(f"Importing {table}: Downloading file {blob.name} to {tmp_filename}")
+            blob.download_to_filename(tmp_filename)
+            logger.info(f"Importing {table}: Reading from csv file {tmp_filename}")
+            import_data_from_csv(table, tmp_filename)
 
     logger.info(f"Importing {table}: Done.")
 
